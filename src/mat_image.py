@@ -13,7 +13,7 @@ class MatImage:
                 use_mat_texture = True, auto_outer_mat_color = True, auto_inner_mat_color = True,
                 auto_select_mat_type = False):
 
-        self.__mat_types = ['float_mount', 'polaroid_float_mount', 'single_bevel', 'double_bevel', 'double_flat']
+        self.__mat_types = ['float', 'float_polaroid', 'single_bevel', 'double_bevel', 'double_flat']
 
         if not mat_type or mat_type not in self.__mat_types:
             mat_type = self.__mat_types[0]
@@ -133,16 +133,16 @@ class MatImage:
         if self.__auto_outer_mat_color:
             self.outer_mat_color = self.__get_outer_mat_color(images[0])
 
-        if mat_type == 'float_mount':
-            image = self.__float_mat(images)
-        elif mat_type == 'polaroid_float_mount':
-            image = self.__polaroid_float_mat(images)
+        if mat_type == 'float':
+            image = self.__style_float(images)
+        elif mat_type == 'float_polaroid':
+            image = self.__style_float_polaroid(images)
         elif mat_type == 'single_bevel':
-            image = self.__single_mat_bevel(images)
+            image = self.__style_single_mat_bevel(images)
         elif mat_type == 'double_bevel':
-            image = self.__double_mat_bevel(images)
+            image = self.__style_double_mat_bevel(images)
         elif mat_type == 'double_flat':
-            image = self.__double_mat_flat(images)
+            image = self.__style_double_mat_flat(images)
         else: image = None
 
         return image
@@ -151,7 +151,7 @@ class MatImage:
 
     # region Matting Styles
 
-    def __float_mat(self, images):
+    def __style_float(self, images):
         pic_count = len(images)
         pic_wid = (self.display_width / pic_count) - (((pic_count + 1) / pic_count) * self.outer_mat_border)
         pic_height = self.display_height - (self.outer_mat_border * 2)
@@ -165,7 +165,7 @@ class MatImage:
 
         return self.__layout_images(final_images)
 
-    def __polaroid_float_mat(self, images):
+    def __style_float_polaroid(self, images):
         border_width = 18
         pic_count = len(images)
         pic_wid = (self.display_width / pic_count) - (((pic_count + 1) / pic_count) * self.outer_mat_border) - (border_width * 2)
@@ -182,7 +182,7 @@ class MatImage:
         return self.__layout_images(final_images)
 
 
-    def __single_mat_bevel(self, images):
+    def __style_single_mat_bevel(self, images):
         bevel_wid = 5
         pic_count = len(images)
         pic_wid = (self.display_width / pic_count) - (((pic_count + 1) / pic_count) * self.outer_mat_border) - (bevel_wid * 2)
@@ -197,7 +197,7 @@ class MatImage:
         return self.__layout_images(final_images)
 
 
-    def __double_mat_bevel(self, images):
+    def __style_double_mat_bevel(self, images):
         bevel_wid = 5
         pic_count = len(images)
         pic_wid = (self.display_width / pic_count) - (((pic_count + 1) / pic_count) * self.outer_mat_border) - (self.inner_mat_border * 2) - (bevel_wid * 4)
@@ -216,7 +216,7 @@ class MatImage:
         return self.__layout_images(final_images)
 
 
-    def __double_mat_flat(self, images):
+    def __style_double_mat_flat(self, images):
         pic_count = len(images)
         pic_wid = (self.display_width / pic_count) - (((pic_count + 1) / pic_count) * self.outer_mat_border) - (self.inner_mat_border * 2)
         pic_height = self.display_height - (self.outer_mat_border * 2) - (self.inner_mat_border * 2)
