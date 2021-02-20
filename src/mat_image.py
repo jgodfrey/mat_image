@@ -8,21 +8,21 @@ class MatImage:
 
     # region Constructor
 
-    def __init__(self, display_size, mat_type = 'random', outer_mat_color = None,
+    def __init__(self, display_size, mat_type = None, outer_mat_color = None,
                 inner_mat_color = None, outer_mat_border = 75, inner_mat_border = 40,
-                use_mat_texture = True):
+                use_mat_texture = True, auto_outer_mat_color = True, auto_inner_mat_color = True,
+                auto_select_mat_type = False):
 
-        self.__mat_types = ['float_mount', 'single_bevel', 'double_bevel', 'double_flat', 'random']
+        self.__mat_types = ['float_mount', 'polaroid_float_mount', 'single_bevel', 'double_bevel', 'double_flat']
 
-        if mat_type in self.__mat_types:
-            self.__mat_type = mat_type
-        else:
-            self.__logger.error("Invalid mat_type. Expected one of: %s. Using 'random'." % mat_types)
-            self.__mat_type = 'random'
+        if not mat_type or mat_type not in self.__mat_types:
+            mat_type = self.__mat_types[0]
 
         self.__logger = logging.getLogger("mat_image.MatImage")
 
         self.display_size = display_size
+        self.mat_type = mat_type
+        self.auto_select_mat_type = auto_select_mat_type
         self.outer_mat_color = outer_mat_color
         self.inner_mat_color = inner_mat_color
         self.use_mat_texture = use_mat_texture
@@ -66,6 +66,14 @@ class MatImage:
     @outer_mat_border.setter
     def outer_mat_border(self, val):
         self.__outer_mat_border = val
+
+    @property
+    def auto_select_mat_type(self):
+        return self.__auto_select_mat_type
+
+    @auto_select_mat_type.setter
+    def auto_select_mat_type(self, val):
+        self.__auto_select_mat_type = val
 
     @property
     def inner_mat_border(self):
@@ -119,16 +127,16 @@ class MatImage:
 
         mat_type = self.mat_type
 
-        if mat_type == 'random':
-            mat_types = self.mat_types.copy()
-            mat_types.remove('random')
-            mat_type = random.choice(mat_types)
+        if self.auto_select_mat_type:
+            mat_type = random.choice(self.__mat_types)
 
         if self.__auto_outer_mat_color:
             self.outer_mat_color = self.__get_outer_mat_color(images[0])
 
         if mat_type == 'float_mount':
             image = self.__float_mat(images)
+        elif mat_type == 'polaroid_float_mount':
+            image = self.__polaroid_float_mat(images)
         elif mat_type == 'single_bevel':
             image = self.__single_mat_bevel(images)
         elif mat_type == 'double_bevel':
@@ -152,6 +160,22 @@ class MatImage:
         for image in images:
             image = self.__scale_image(image, (pic_wid, pic_height))
             self.__add_image_outline(image, self.outer_mat_color, auto_adjust=True)
+            image = self.__add_drop_shadow(image)
+            final_images.append(image)
+
+        return self.__layout_images(final_images)
+
+    def __polaroid_float_mat(self, images):
+        border_width = 18
+        pic_count = len(images)
+        pic_wid = (self.display_width / pic_count) - (((pic_count + 1) / pic_count) * self.outer_mat_border) - (border_width * 2)
+        pic_height = self.display_height - (self.outer_mat_border * 2) - (border_width * 2)
+
+        final_images = []
+        for image in images:
+            image = self.__scale_image(image, (pic_wid, pic_height))
+            image = ImageOps.expand(image, border_width)
+            self.__add_image_outline(image, (210,210,210), outline_width=border_width)
             image = self.__add_drop_shadow(image)
             final_images.append(image)
 
@@ -225,7 +249,7 @@ class MatImage:
 
 
     def __get_outer_mat_color(self, image):
-        k = Kmeans(size=16)
+        k = Kmeans(size=20)
         colors = k.run(image)
         return self.__get_least_gray_color(colors)
 
@@ -445,7 +469,6 @@ if __name__ == "__main__":
     matter = MatImage((1920, 1080))
 
     for mat_type in matter.mat_types:
-        if mat_type == 'random': continue
         matter.mat_type = mat_type
         img = matter.mat_image(images)
         img.save('{0}/{1}_texture.jpg'.format(save_folder, mat_type))
