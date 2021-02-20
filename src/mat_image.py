@@ -120,7 +120,9 @@ class MatImage:
         mat_type = self.mat_type
 
         if mat_type == 'random':
-            mat_type = random.choice(self.mat_types)
+            mat_types = self.mat_types.copy()
+            mat_types.remove('random')
+            mat_type = random.choice(mat_types)
 
         if self.__auto_outer_mat_color:
             self.outer_mat_color = self.__get_outer_mat_color(images[0])
@@ -278,6 +280,7 @@ class MatImage:
         image.paste(outer_bevel_image, (0,0), outer_bevel_image)
         return image
 
+
     def __add_inner_shadow(self, image):
         inner_shadow_image = self.__9patch_inner_shadow.render(image.width, image.height)
         image.paste(inner_shadow_image, (0,0), inner_shadow_image)
@@ -364,7 +367,8 @@ class Kmeans(object):
     def run(self, image):
         image = image.copy()
         image.thumbnail(self.size)
-        image = image.convert("RGB") # JAG, some numpy manipulations here don't expect an Alpha channel
+        if image.mode != 'RGB':
+            image = image.convert('RGB') # JAG, some numpy manipulations here don't expect an Alpha channel
         self.image = image
 
         self.pixels = np.array(image.getdata(), dtype=np.uint8)
