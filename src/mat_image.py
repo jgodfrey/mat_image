@@ -174,6 +174,7 @@ class MatImage:
         final_images = []
         for image in images:
             image = self.__scale_image(image, (pic_wid, pic_height))
+            self.__add_image_outline(image, self.outer_mat_color)
             image = ImageOps.expand(image, border_width)
             self.__add_image_outline(image, (210,210,210), outline_width=border_width)
             image = self.__add_drop_shadow(image)
