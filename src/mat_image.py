@@ -15,21 +15,22 @@ class MatImage:
 
         self.__mat_types = ['float', 'float_polaroid', 'single_bevel', 'double_bevel', 'double_flat']
 
+        # If a mat type wasn't specified, select the 1st one for safety
         if not mat_type or mat_type not in self.__mat_types:
             mat_type = self.__mat_types[0]
 
         self.__logger = logging.getLogger("mat_image.MatImage")
 
-        self.display_size = display_size
-        self.mat_type = mat_type
+        self.auto_inner_mat_color = auto_inner_mat_color
+        self.auto_outer_mat_color = auto_outer_mat_color
         self.auto_select_mat_type = auto_select_mat_type
-        self.outer_mat_color = outer_mat_color
-        self.inner_mat_color = inner_mat_color
-        self.use_mat_texture = use_mat_texture
-        self.outer_mat_border = outer_mat_border
+        self.display_size = display_size
         self.inner_mat_border = inner_mat_border
-        self.__auto_inner_mat_color = inner_mat_color == None
-        self.__auto_outer_mat_color = outer_mat_color == None
+        self.inner_mat_color = inner_mat_color
+        self.mat_type = mat_type
+        self.outer_mat_border = outer_mat_border
+        self.outer_mat_color = outer_mat_color
+        self.use_mat_texture = use_mat_texture
 
         # --- Matting resources ---
         res_path = '/home/pi/.local/picframe/data'
@@ -100,6 +101,22 @@ class MatImage:
         self.__inner_mat_color = val
 
     @property
+    def auto_inner_mat_color(self):
+        return self.__auto_inner_mat_color
+
+    @auto_inner_mat_color.setter
+    def auto_inner_mat_color(self, val):
+        self.__auto_inner_mat_color = val
+
+    @property
+    def auto_outer_mat_color(self):
+        return self.__auto_outer_mat_color
+
+    @auto_outer_mat_color.setter
+    def auto_outer_mat_color(self, val):
+        self.__auto_outer_mat_color = val
+
+    @property
     def mat_type(self):
         return self.__mat_type
 
@@ -130,7 +147,8 @@ class MatImage:
         if self.auto_select_mat_type:
             mat_type = random.choice(self.__mat_types)
 
-        if self.__auto_outer_mat_color:
+        # If we're supposed to get the mat color automatically or a color wasn't specified, get one
+        if self.auto_outer_mat_color or not self.outer_mat_color:
             self.outer_mat_color = self.__get_outer_mat_color(images[0])
 
         if mat_type == 'float':
@@ -284,7 +302,8 @@ class MatImage:
     def __get_inner_mat(self, size):
         w,h = size
 
-        if self.__auto_inner_mat_color:
+        # If we're supposed to get the mat color automatically or a color wasn't specified, get one
+        if self.auto_inner_mat_color or not self.inner_mat_color:
             color = self.__get_darker_shade(self.outer_mat_color, 0.50)
         else:
             color = self.inner_mat_color
